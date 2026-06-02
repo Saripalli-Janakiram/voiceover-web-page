@@ -1,38 +1,20 @@
 const voiceSelect = document.getElementById("voiceSelect");
-const rateInput = document.getElementById("rate");
-const pitchInput = document.getElementById("pitch");
-const readBtn = document.getElementById("readBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const resumeBtn = document.getElementById("resumeBtn");
-const stopBtn = document.getElementById("stopBtn");
+const rate = document.getElementById("rate");
+const pitch = document.getElementById("pitch");
 
-function getActiveTab(callback) {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs && tabs.length > 0) {
-      callback(tabs[0]);
-    }
-  });
+function activeTab(cb) {
+  chrome.tabs.query({ active: true, currentWindow: true }, tabs => cb(tabs[0]));
 }
 
-function sendToContent(type, extra = {}) {
-  getActiveTab((tab) => {
-    chrome.tabs.sendMessage(tab.id, { type, ...extra }, (res) => {
-      const lastError = chrome.runtime.lastError;
-      if (lastError) {
-        console.warn("VoiceOver Web Page: message error", lastError.message);
-      }
-    });
+function send(type, data = {}) {
+  activeTab(tab => {
+    chrome.tabs.sendMessage(tab.id, { type, ...data });
   });
 }
 
 function loadVoices() {
-  getActiveTab((tab) => {
-    chrome.tabs.sendMessage(tab.id, { type: "GET_VOICES" }, (res) => {
-      const lastError = chrome.runtime.lastError;
-      if (lastError) {
-        console.warn("VoiceOver Web Page: GET_VOICES error", lastError.message);
-        return;
-      }
+  activeTab(tab => {
+    chrome.tabs.sendMessage(tab.id, { type: "GET_VOICES" }, res => {
       if (!res || !res.voices) return;
 
       voiceSelect.innerHTML = "";
@@ -49,16 +31,17 @@ function loadVoices() {
 document.addEventListener("DOMContentLoaded", () => {
   loadVoices();
 
-  readBtn.onclick = () => {
-    const options = {
-      rate: parseFloat(rateInput.value),
-      pitch: parseFloat(pitchInput.value),
-      voiceName: voiceSelect.value || null
-    };
-    sendToContent("READ_PAGE", { options });
+  document.getElementById("readBtn").onclick = () => {
+    send("READ", {
+      options: {
+        rate: parseFloat(rate.value),
+        pitch: parseFloat(pitch.value),
+        voiceName: voiceSelect.value
+      }
+    });
   };
 
-  pauseBtn.onclick = () => sendToContent("PAUSE");
-  resumeBtn.onclick = () => sendToContent("RESUME");
-  stopBtn.onclick = () => sendToContent("STOP");
+  document.getElementById("pauseBtn").onclick = () => send("PAUSE");
+  document.getElementById("resumeBtn").onclick = () => send("RESUME");
+  document.getElementById("stopBtn").onclick = () => send("STOP");
 });
