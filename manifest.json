@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "VoiceOver Web Page",
-  "version": "1.0",
-  "description": "Read selected text or full webpages aloud using built-in browser voices.",
+  "version": "2.0",
+  "description": "Reads selected text or full webpages aloud using built-in browser voices.",
   "permissions": ["activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
@@ -13,12 +13,5 @@
   },
   "icons": {
     "128": "icon128.png"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }
-  ]
+  }
 }
