@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "VoiceOver Web Page",
   "version": "1.0",
-  "description": "Free full-page text-to-speech reader using built-in browser voices.",
-  "permissions": ["scripting", "activeTab"],
+  "description": "Read selected text or full webpages aloud using built-in browser voices.",
+  "permissions": ["activeTab"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

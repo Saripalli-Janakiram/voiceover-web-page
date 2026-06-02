@@ -2,16 +2,37 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Read Aloud Lite</title>
+  <title>VoiceOver Web Page</title>
   <style>
-    body { font-family: Arial, sans-serif; width: 260px; padding: 10px; }
-    label { display: block; margin-top: 8px; font-size: 13px; }
-    select, input[type=range] { width: 100%; }
-    button { margin-top: 8px; width: 100%; padding: 6px; }
+    body {
+      font-family: Arial, sans-serif;
+      width: 260px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    h3 {
+      margin-top: 0;
+      font-size: 16px;
+    }
+    label {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    select, input[type=range] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 8px;
+      width: 100%;
+      padding: 6px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h3>Read Aloud Lite</h3>
+  <h3>VoiceOver Web Page</h3>
 
   <label>Voice:
     <select id="voiceSelect"></select>

@@ -1,8 +1,12 @@
+console.log("VoiceOver Web Page: content script loaded");
+
 let utterance = null;
 let isPaused = false;
 
+// Force voices to initialize in Chrome
+speechSynthesis.onvoiceschanged = speechSynthesis.onvoiceschanged || (() => {});
+
 function getMainText() {
-  // Simple version: read visible text from body
   const walker = document.createTreeWalker(
     document.body,
     NodeFilter.SHOW_TEXT,
@@ -18,6 +22,7 @@ function getMainText() {
       }
     }
   );
+
   let text = "";
   let node;
   while ((node = walker.nextNode())) {
@@ -27,8 +32,12 @@ function getMainText() {
 }
 
 function speakFullPage(options) {
-  const text = window.getSelection().toString().trim() || getMainText();
-  if (!text) return;
+  const selection = window.getSelection().toString().trim();
+  const text = selection || getMainText();
+  if (!text) {
+    console.warn("VoiceOver Web Page: No text found to read.");
+    return;
+  }
 
   if (utterance) {
     window.speechSynthesis.cancel();
@@ -37,11 +46,13 @@ function speakFullPage(options) {
   utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = options.rate || 1;
   utterance.pitch = options.pitch || 1;
+
   if (options.voiceName) {
-    const voice = speechSynthesis
-      .getVoices()
-      .find(v => v.name === options.voiceName);
-    if (voice) utterance.voice = voice;
+    const voices = speechSynthesis.getVoices();
+    const voice = voices.find(v => v.name === options.voiceName);
+    if (voice) {
+      utterance.voice = voice;
+    }
   }
 
   window.speechSynthesis.speak(utterance);
@@ -71,6 +82,26 @@ function stopSpeech() {
   isPaused = false;
 }
 
+function getVoicesAsync(sendResponse) {
+  let voices = speechSynthesis.getVoices();
+  if (voices && voices.length > 0) {
+    sendResponse({
+      voices: voices.map(v => ({ name: v.name, lang: v.lang }))
+    });
+    return;
+  }
+
+  const handler = () => {
+    voices = speechSynthesis.getVoices();
+    sendResponse({
+      voices: voices.map(v => ({ name: v.name, lang: v.lang }))
+    });
+    speechSynthesis.removeEventListener("voiceschanged", handler);
+  };
+
+  speechSynthesis.addEventListener("voiceschanged", handler);
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "READ_PAGE") {
     speakFullPage(msg.options || {});
@@ -81,11 +112,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   } else if (msg.type === "STOP") {
     stopSpeech();
   } else if (msg.type === "GET_VOICES") {
-    const voices = speechSynthesis.getVoices().map(v => ({
-      name: v.name,
-      lang: v.lang
-    }));
-    sendResponse({ voices });
-    return true;
+    getVoicesAsync(sendResponse);
+    return true; // keep channel open for async response
   }
 });
